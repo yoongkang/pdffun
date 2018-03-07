@@ -8,8 +8,6 @@ my experience with fillable PDF forms.
 
 Please install pdftk: https://www.pdflabs.com/tools/pdftk-server/
 
-If you are on a Mac, this is probably just `brew install pdftk`
-
 # Installation
 
 Make sure you have Pipenv installed, then run the following commands:
