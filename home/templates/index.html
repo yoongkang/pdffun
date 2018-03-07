@@ -1,0 +1,149 @@
+{% load static %}
+<!doctype html>
+
+<head>
+  <title>PDF Fun</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    crossorigin="anonymous">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN"
+    crossorigin="anonymous">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
+  <style>
+    canvas {
+      border: 1px solid;
+    }
+  </style>
+</head>
+
+
+<body>
+  <section>
+    <div class="container">
+      <div class="row">
+        <h1>PDF Fun</h1>
+      </div>
+      <div class="row">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label for="name">Name:</label>
+            <input name="name" type="text" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label for="address">Address:</label>
+            <input name="address" type="text" class="form-control" />
+          </div>
+
+          <div class="form-group">
+
+            <p>Cities:</p>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" name="city" type="checkbox" id="inlineCheckbox1" value="sydney">
+              <label class="form-check-label" for="inlineCheckbox1">Sydney</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" name="city" type="checkbox" id="inlineCheckbox2" value="melbourne">
+              <label class="form-check-label" for="inlineCheckbox2">Melbourne</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" name="city" type="checkbox" id="inlineCheckbox3" value="adelaide">
+              <label class="form-check-label" for="inlineCheckbox3">Adelaide</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" name="city" type="checkbox" id="inlineCheckbox4" value="perth">
+              <label class="form-check-label" for="inlineCheckbox4">Perth</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <p>Programming languages</p>
+
+
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="language" id="inlineRadio1" value="python">
+              <label class="form-check-label" for="inlineRadio1">Python</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="language" id="inlineRadio2" value="ruby">
+              <label class="form-check-label" for="inlineRadio2">Ruby</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="language" id="inlineRadio3" value="javascript">
+              <label class="form-check-label" for="inlineRadio3">JavaScript</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <p>Signature:</p>
+            <canvas id="canvas" width="490" height="220"></canvas>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+      </div>
+    </div>
+
+  </section>
+  <script type="text/javascript">
+    var canvas = document.querySelector("canvas");
+
+    var signaturePad = new SignaturePad(canvas);
+
+    // Returns signature image as data URL (see https://mdn.io/todataurl for the list of possible parameters)
+    signaturePad.toDataURL(); // save image as PNG
+    signaturePad.toDataURL("image/jpeg"); // save image as JPEG
+    signaturePad.toDataURL("image/svg+xml"); // save image as SVG
+
+    // Draws signature image from data URL.
+    // NOTE: This method does not populate internal data structure that represents drawn signature. Thus, after using #fromDataURL, #toData won't work properly.
+    signaturePad.fromDataURL("data:image/png;base64,iVBORw0K...");
+
+    // Returns signature image as an array of point groups
+    const data = signaturePad.toData();
+
+    // Draws signature image from an array of point groups
+    signaturePad.fromData(data);
+
+    // Clears the canvas
+    signaturePad.clear();
+
+    // Returns true if canvas is empty, otherwise returns false
+    signaturePad.isEmpty();
+
+    // Unbinds all event handlers
+    signaturePad.off();
+
+    // Rebinds all event handlers
+    signaturePad.on();
+  </script>
+
+  <script>
+    var form = $('form');
+    form.on('submit', function (e) {
+      e.preventDefault();
+      var data = form.serializeArray();
+      data.push({name: "signature", value: canvas.toDataURL()});
+      console.log(data);
+      $.ajax(
+        '/',
+        {
+          method: 'post',
+          data: data,
+          responseType: "arraybuffer",
+          success: function (result) {
+            window.location.href = result.redirect_url;
+          }
+        }
+      )
+    })
+  </script>
+</body>
