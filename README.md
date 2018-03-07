@@ -16,7 +16,7 @@ Make sure you have Pipenv installed, then run the following commands:
 
 ```
 $ pipenv install
-$ pipenv run python migrate
+$ pipenv run python manage.py migrate
 $ pipenv run python manage.py runserver
 ```
 
