@@ -23,8 +23,9 @@ You should be able to access the server on http://localhost:8000/
 
 # Comments
 
-In this repository, I sent the image as a base64 encoded string. Don't do this.
+Previously in this repository, I sent the image as a base64 encoded string. Don't do this.
 
 A better idea would be to send it as a `Blob`. Do that instead.
 
-I'm going to make changes to this repository soon to use `Blob`.
+I have now changed the code to use a `Blob` sent using `FormData`.
+

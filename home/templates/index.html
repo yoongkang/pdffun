@@ -18,6 +18,10 @@
     canvas {
       border: 1px solid;
     }
+    .hidden {
+      display: none;
+    }
+
   </style>
 </head>
 
@@ -25,10 +29,13 @@
 <body>
   <section>
     <div class="container">
+      <div class="hidden alert alert-danger" id="error-box">An error has occured.</div>
+
       <div class="row">
         <h1>PDF Fun</h1>
       </div>
       <div class="row">
+
         <form method="post">
           {% csrf_token %}
 
@@ -97,53 +104,47 @@
     var canvas = document.querySelector("canvas");
 
     var signaturePad = new SignaturePad(canvas);
-
-    // Returns signature image as data URL (see https://mdn.io/todataurl for the list of possible parameters)
-    signaturePad.toDataURL(); // save image as PNG
-    signaturePad.toDataURL("image/jpeg"); // save image as JPEG
-    signaturePad.toDataURL("image/svg+xml"); // save image as SVG
-
-    // Draws signature image from data URL.
-    // NOTE: This method does not populate internal data structure that represents drawn signature. Thus, after using #fromDataURL, #toData won't work properly.
-    signaturePad.fromDataURL("data:image/png;base64,iVBORw0K...");
-
-    // Returns signature image as an array of point groups
-    const data = signaturePad.toData();
-
-    // Draws signature image from an array of point groups
-    signaturePad.fromData(data);
-
-    // Clears the canvas
-    signaturePad.clear();
-
-    // Returns true if canvas is empty, otherwise returns false
-    signaturePad.isEmpty();
-
-    // Unbinds all event handlers
-    signaturePad.off();
-
-    // Rebinds all event handlers
-    signaturePad.on();
   </script>
 
   <script>
-    var form = $('form');
-    form.on('submit', function (e) {
-      e.preventDefault();
-      var data = form.serializeArray();
-      data.push({name: "signature", value: canvas.toDataURL()});
-      console.log(data);
-      $.ajax(
-        '/',
-        {
-          method: 'post',
-          data: data,
-          responseType: "arraybuffer",
-          success: function (result) {
-            window.location.href = result.redirect_url;
-          }
+    const getCsrfToken = () => {
+      return document.cookie.split('; ')
+        .map(s => s.split('='))
+        .filter(x => x[0] == 'csrftoken')[0][1];
+    }
+
+    const postForm = data => {
+      let errorBox = document.getElementById('error-box');
+      if (!errorBox.classList.contains('hidden')) errorBox.classList.add('hidden');
+      return fetch('/', {
+        method: 'POST',
+        body: data,
+        credentials: "same-origin",
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': XMLHttpRequest
         }
-      )
-    })
+      }).then(response => {
+        if (response.ok) {
+          response.json().then(data => {
+            window.location.href = data.redirect_url;
+          });
+        } else {
+          errorBox.classList.remove('hidden');
+        }
+      }).catch(err => errorBox.classList.remove('hidden'));
+    }
+
+    let form = document.querySelector('form');
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      let formData = new FormData(event.target);
+      let canvas = document.querySelector('canvas');
+      canvas.toBlob(blob => {
+        formData.append('signature', blob, 'signature.png');
+        postForm(formData);
+      });
+    });
   </script>
 </body>
+

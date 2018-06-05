@@ -32,11 +32,9 @@ class PdfForm(forms.Form):
 
 
 def the_form(request):
-    file_data = None
-    if 'signature' in request.POST:
-        sigbytes = base64.b64decode(request.POST['signature'].partition(";base64,")[2])
-        file_data = {'signature': ContentFile(content=sigbytes, name='signature.png')}
-    form = PdfForm(request.POST or None, file_data)
+    if request.method == 'GET':
+        return render(request, 'index.html', {})
+    form = PdfForm(request.POST, request.FILES)
     if form.is_valid():
         data = form.cleaned_data.copy()
         for city in ['sydney', 'melbourne', 'adelaide', 'perth']:
